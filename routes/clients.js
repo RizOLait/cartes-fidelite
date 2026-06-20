@@ -39,4 +39,19 @@ router.get('/liste', (req, res) => {
   res.json(clients);
 });
 
+router.get('/google/:id', (req, res) => {
+  const clients = db.tousLesClients();
+  const client = clients.find(c => c.id == req.params.id);
+
+  if (!client) return res.status(404).json({ erreur: 'Client introuvable' });
+
+  try {
+    const { generateGooglePassUrl } = require('../passes/google-generator');
+    const url = generateGooglePassUrl(client);
+    res.json({ url });
+  } catch (err) {
+    res.status(500).json({ erreur: err.message });
+  }
+});
+
 module.exports = router;

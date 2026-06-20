@@ -119,16 +119,21 @@
     }
 
     liste.innerHTML = clients.map(c => `
-      <div class="client-item">
-        <div>
-          <div class="client-name">${c.prenom}</div>
-          <div class="client-email">${c.email}</div>
-        </div>
-        <div class="stamps ${c.tampons >= 6 ? 'full' : ''}">
-          ${c.tampons >= 6 ? '🎉' : '☕'} ${c.tampons}/6
-        </div>
+  <div class="client-item">
+    <div>
+      <div class="client-name">${c.prenom}</div>
+      <div class="client-email">${c.email}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="stamps ${c.tampons >= 6 ? 'full' : ''}">
+        ${c.tampons >= 6 ? '🎉' : '☕'} ${c.tampons}/6
       </div>
-    `).join('');
+      <button onclick="ouvrirGoogle(${c.id})" style="width:auto;padding:4px 10px;font-size:11px;background:#4285f4;margin-top:0">
+        🤖 Wallet
+      </button>
+    </div>
+  </div>
+`).join('');
   }
 
   async function ajouterClient() {
@@ -183,6 +188,17 @@
 
   chargerClients();
   setInterval(chargerClients, 30000);
+
+  async function ouvrirGoogle(id) {
+    const res = await fetch(`/api/clients/google/${id}`);
+    const data = await res.json();
+    if (data.url) {
+      window.open(data.url, '_blank');
+    } else {
+      alert('Erreur : ' + data.erreur);
+    }
+  }
+
 </script>
 </body>
 </html>
