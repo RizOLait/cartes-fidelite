@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Fidélité</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e8eaf0; min-height: 100vh; }
+    header { background: #161920; border-bottom: 1px solid #2a2f3f; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 20px; font-weight: 700; color: #6c63ff; }
+    header span { font-size: 13px; color: #7a8099; }
+    main { max-width: 1000px; margin: 40px auto; padding: 0 24px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: #161920; border: 1px solid #2a2f3f; border-radius: 12px; padding: 20px 24px; }
+    .stat-card .label { font-size: 12px; color: #7a8099; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .stat-card .value { font-size: 32px; font-weight: 700; color: #6c63ff; }
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .panel { background: #161920; border: 1px solid #2a2f3f; border-radius: 12px; padding: 24px; }
+    .panel h2 { font-size: 16px; font-weight: 600; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #2a2f3f; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #7a8099; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    input { width: 100%; background: #0f1117; border: 1px solid #2a2f3f; border-radius: 8px; padding: 10px 14px; color: #e8eaf0; font-size: 14px; font-family: inherit; transition: border-color 0.2s; }
+    input:focus { outline: none; border-color: #6c63ff; }
+    button { width: 100%; background: #6c63ff; color: white; border: none; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; margin-top: 4px; }
+    button:hover { background: #5a52e0; }
+    button.green { background: #00d4aa; }
+    button.green:hover { background: #00b894; }
+    .msg { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; }
+    .msg.ok { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.3); color: #00d4aa; }
+    .msg.err { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: #ff6b6b; }
+    .client-list { margin-top: 8px; }
+    .client-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2a2f3f; font-size: 14px; }
+    .client-item:last-child { border-bottom: none; }
+    .client-name { font-weight: 600; }
+    .client-email { color: #7a8099; font-size: 12px; margin-top: 2px; }
+    .stamps { background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); color: #a09dff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .stamps.full { background: rgba(0,212,170,0.15); border-color: rgba(0,212,170,0.3); color: #00d4aa; }
+    .empty { color: #7a8099; font-size: 13px; text-align: center; padding: 24px 0; }
+    @media (max-width: 640px) { .stats { grid-template-columns: 1fr; } .panels { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>💳 Dashboard Fidélité</h1>
+  <span id="date"></span>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total clients</div>
+      <div class="value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Cartes complètes</div>
+      <div class="value" id="stat-full" style="color:#00d4aa">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Tampons distribués</div>
+      <div class="value" id="stat-tampons" style="color:#ff6b6b">—</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div>
+      <div class="panel" style="margin-bottom:24px">
+        <h2>➕ Nouveau client</h2>
+        <div class="form-group">
+          <label>Prénom</label>
+          <input type="text" id="prenom" placeholder="Marie">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="marie@example.com">
+        </div>
+        <button onclick="ajouterClient()">Créer la carte</button>
+        <div class="msg" id="msg-ajout"></div>
+      </div>
+
+      <div class="panel">
+        <h2>☕ Créditer un tampon</h2>
+        <div class="form-group">
+          <label>Email du client</label>
+          <input type="email" id="email-tampon" placeholder="marie@example.com">
+        </div>
+        <button class="green" onclick="ajouterTampon()">+ 1 Tampon</button>
+        <div class="msg" id="msg-tampon"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>👥 Clients <span id="nb-clients" style="color:#7a8099;font-weight:400;font-size:13px"></span></h2>
+      <div class="client-list" id="liste-clients">
+        <div class="empty">Chargement...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.getElementById('date').textContent =
+    new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+
+  async function chargerClients() {
+    const res = await fetch('/api/clients/liste');
+    const clients = await res.json();
+
+    document.getElementById('stat-total').textContent = clients.length;
+    document.getElementById('stat-full').textContent = clients.filter(c => c.tampons >= 6).length;
+    document.getElementById('stat-tampons').textContent = clients.reduce((acc, c) => acc + c.tampons, 0);
+    document.getElementById('nb-clients').textContent = `(${clients.length})`;
+
+    const liste = document.getElementById('liste-clients');
+    if (clients.length === 0) {
+      liste.innerHTML = '<div class="empty">Aucun client pour l\'instant</div>';
+      return;
+    }
+
+    liste.innerHTML = clients.map(c => `
+      <div class="client-item">
+        <div>
+          <div class="client-name">${c.prenom}</div>
+          <div class="client-email">${c.email}</div>
+        </div>
+        <div class="stamps ${c.tampons >= 6 ? 'full' : ''}">
+          ${c.tampons >= 6 ? '🎉' : '☕'} ${c.tampons}/6
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function ajouterClient() {
+    const prenom = document.getElementById('prenom').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const msg = document.getElementById('msg-ajout');
+
+    const res = await fetch('/api/clients/ajouter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prenom, email })
+    });
+    const data = await res.json();
+
+    msg.style.display = 'block';
+    if (res.ok) {
+      msg.className = 'msg ok';
+      msg.textContent = data.message;
+      document.getElementById('prenom').value = '';
+      document.getElementById('email').value = '';
+      chargerClients();
+    } else {
+      msg.className = 'msg err';
+      msg.textContent = data.erreur;
+    }
+    setTimeout(() => msg.style.display = 'none', 3000);
+  }
+
+  async function ajouterTampon() {
+    const email = document.getElementById('email-tampon').value.trim();
+    const msg = document.getElementById('msg-tampon');
+
+    const res = await fetch('/api/clients/tampon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    msg.style.display = 'block';
+    if (res.ok) {
+      msg.className = 'msg ok';
+      msg.textContent = `${data.message} — ${data.prenom} a maintenant ${data.tampons}/6 tampons`;
+      document.getElementById('email-tampon').value = '';
+      chargerClients();
+    } else {
+      msg.className = 'msg err';
+      msg.textContent = data.erreur;
+    }
+    setTimeout(() => msg.style.display = 'none', 3000);
+  }
+
+  chargerClients();
+  setInterval(chargerClients, 30000);
+</script>
+</body>
+</html>
